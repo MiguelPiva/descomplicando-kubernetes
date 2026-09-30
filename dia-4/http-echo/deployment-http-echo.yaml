@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: http-echo-deployment
+  name: http-echo-deployment
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: http-echo-deployment
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: http-echo-deployment
+    spec:
+      containers:
+        - image: hashicorp/http-echo:1.0
+          name: http-echo
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          livenessProbe:
+            tcpSocket: 
+              port: 5678
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+          readinessProbe:
+            tcpSocket:
+              port: 5678
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 10
+            successThreshold: 2
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /
+              port: 5678
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+
