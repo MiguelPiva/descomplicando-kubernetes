@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels: 
+    app: busybox-deployment
+  name: busybox-deployment
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: busybox-deployment
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 2
+  template:
+    metadata:
+      labels:
+        app: busybox-deployment
+    spec:
+      containers:
+        - image: busybox:1.38.0-glibc
+          name: busybox
+          command:
+            - sh
+            - -c
+            - "for i in $(seq -w 1 60); do echo $i >> numeros.txt; sleep 3; done; echo 'Desligando...' >> numeros.txt; sleep 15"
+          resources: 
+            limits:
+              cpu: 15m
+              memory: 24Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "true"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec: 
+              command:
+                - sh
+                - -c
+                - "true"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["cat", "/proc/1/status"]
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
